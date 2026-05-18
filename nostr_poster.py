@@ -156,7 +156,7 @@ def main():
     if feed.bozo:
         print(f"Avertissement RSS : {feed.bozo_exception}")
 
-    entries = list(reversed(feed.entries))  # plus ancien → plus récent
+    entries = list(reversed(feed.entries))[:1]  # TEST : 1 seul article
     published = skipped_cat = skipped_posted = 0
 
     for entry in entries:
