@@ -84,10 +84,12 @@ def is_allowed(entry):
 # ── Helpers ────────────────────────────────────────────────────────────────
 
 def strip_html(text):
+    import html
     text = re.sub(r"<[^>]+>", "", text)
+    text = html.unescape(text)
+    text = re.sub(r"L.article\s+.+?\s+est apparu en premier sur \w+\.", "", text, flags=re.DOTALL)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
-
 
 def load_posted():
     if Path(POSTED_FILE).exists():
