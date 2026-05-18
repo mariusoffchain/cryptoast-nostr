@@ -129,11 +129,11 @@ def publish_note(content, nsec):
     for relay in RELAYS:
         relay_manager.add_relay(relay)
     relay_manager.open_connections({"cert_reqs": ssl.CERT_NONE})
-    time.sleep(1.5)
+    time.sleep(3)
     event = Event(content=content)
     private_key.sign_event(event)
     relay_manager.publish_event(event)
-    time.sleep(2)
+    time.sleep(3)
     relay_manager.close_connections()
 
 
