@@ -20,7 +20,7 @@ from pynostr.relay_manager import RelayManager
 
 # ── Config ─────────────────────────────────────────────────────────────────
 
-FEED_URL = "https://cryptoast.fr/btc,bitcoin/feed"
+FEED_URL = "https://cryptoast.fr/feed"
 
 RELAYS = [
     "wss://nos.lol",
