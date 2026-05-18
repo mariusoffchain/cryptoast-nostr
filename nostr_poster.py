@@ -131,7 +131,7 @@ def publish_note(content, nsec):
             await client.add_relay(relay)
         await client.connect()
         await asyncio.sleep(2)
-        builder = EventBuilder.text_note(content)
+        builder = EventBuilder.text_note(content, [])
         await client.send_event_builder(builder)
         await asyncio.sleep(2)
         await client.disconnect()
