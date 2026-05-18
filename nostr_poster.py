@@ -14,10 +14,6 @@ import ssl
 import time
 from pathlib import Path
 
-from pynostr.key import PrivateKey
-from pynostr.event import Event
-from pynostr.relay_manager import RelayManager
-
 # ── Config ─────────────────────────────────────────────────────────────────
 
 FEED_URL = "https://cryptoast.fr/feed"
@@ -124,18 +120,23 @@ def build_note(entry):
 # ── Nostr ──────────────────────────────────────────────────────────────────
 
 def publish_note(content, nsec):
-    private_key = PrivateKey.from_nsec(nsec)
-    relay_manager = RelayManager(error_threshold=4, timeout=10)
-    for relay in RELAYS:
-        relay_manager.add_relay(relay)
-    relay_manager.open_connections({"cert_reqs": ssl.CERT_NONE})
-    time.sleep(3)
-    event = Event(content=content)
-    private_key.sign_event(event)
-    relay_manager.publish_event(event)
-    time.sleep(3)
-    relay_manager.close_connections()
+    from nostr_sdk import Client, Keys, NostrSigner, EventBuilder
+    import asyncio
 
+    async def _publish():
+        keys = Keys.parse(nsec)
+        signer = NostrSigner.keys(keys)
+        client = Client(signer)
+        for relay in RELAYS:
+            await client.add_relay(relay)
+        await client.connect()
+        await asyncio.sleep(2)
+        builder = EventBuilder.text_note(content)
+        await client.send_event_builder(builder)
+        await asyncio.sleep(2)
+        await client.disconnect()
+
+    asyncio.run(_publish())
 
 # ── Main ───────────────────────────────────────────────────────────────────
 
