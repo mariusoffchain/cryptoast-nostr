@@ -31,6 +31,7 @@ jobs:
       - name: Publication des nouveaux articles sur Nostr
         env:
           NOSTR_NSEC: ${{ secrets.NOSTR_NSEC }}
+          DEBUG_TAGS: "true"
         run: python nostr_poster.py
 
       - name: Sauvegarde de posted.json
