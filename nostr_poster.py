@@ -10,7 +10,6 @@ import feedparser
 import json
 import os
 import re
-import ssl
 import time
 from pathlib import Path
 
@@ -30,36 +29,49 @@ HASHTAGS = "#nostrfr"
 MAX_SUMMARY_CHARS = 400
 
 # ── Filtre catégories ───────────────────────────────────────────────────────
-#
-# Chaque entrée : (label lisible, [mots-clés cherchés dans les tags RSS]).
-# Correspondance insensible à la casse, partielle (substring).
-# Un seul mot-clé qui matche → article publié.
-#
-# Pour voir les tags bruts reçus par le feed, ajoute DEBUG_TAGS=true
-# dans les variables d'environnement du workflow GitHub Actions.
+# Correspondance exacte sur les noms de catégories Cryptoast (insensible casse)
 
-ALLOWED_CATEGORIES = [
-    ("Bitcoin",            ["bitcoin"]),
-    ("Blockchain",         ["blockchain"]),
-    ("Minage",             ["minage", "mining", "mineur"]),
-    ("Économie & Finance", ["économie", "finance", "macro", "marché", "bourse",
-                            "economie", "etf", "institutionnel"]),
-    ("Régulation",         ["régulation", "regulation", "réglementation",
-                            "reglementation", "juridique", "loi", "sec", "mica",
-                            "amf", "politique"]),
-    ("Analyse prix",       ["analyse", "prix", "cours", "price", "bull", "bear",
-                            "technique", "résistance", "support", "halving"]),
-    ("Analyse on-chain",   ["on-chain", "onchain", "mempool", "hashrate",
-                            "difficulté", "glassnode", "cryptoquant"]),
-    ("Dossiers",           ["dossier"]),
-    ("Tribunes",           ["tribune"]),
-]
+ALLOWED_CATEGORIES = {
+    "actualité de la blockchain",
+    "actu de la crypto",
+    "actualité des exchanges",
+    "actualité du bitcoin (btc)",
+    "actualité du minage",
+    "actualité du ripple (xrp)",
+    "actualité économie et finance",
+    "actualité régulation crypto",
+    "analyse du prix du bitcoin et des crypto-monnaies",
+    "analyse on-chain",
+    "dossiers",
+    "tribunes",
+    "zone innovation",
+    "analyses de cryptomonnaies",
+    "crypto brunch",
+    "cryptoast",
+    "développement blockchain",
+    "blockchain",
+    "bourse",
+    "defi : finance décentralisée",
+    "droit et fiscalité",
+    "exchanges crypto",
+    "formation bitcoin",
+    "guide sur le trading",
+    "minage, masternodes et staking",
+    "personnalités cryptos",
+    "sécurité et stockage",
+    "investissement",
+    "le récap' crypto",
+    "podcast crypto-monnaies",
+    "tutos cryptos",
+    "vidéos cryptos",
+}
+
+BLOCKED_TAGS = {"sponso", "no pub", "partenariat"}
 
 
 # ── Filtre ─────────────────────────────────────────────────────────────────
 
-def get_entry_categories(entry) -> list:
-    """Retourne les catégories/tags d'une entrée RSS en minuscules."""
+def get_entry_categories(entry):
     tags = entry.get("tags", [])
     categories = [t.get("term", "").lower() for t in tags]
     raw_cat = entry.get("category", "")
@@ -69,15 +81,16 @@ def get_entry_categories(entry) -> list:
 
 
 def is_allowed(entry):
-    """
-    Retourne (True, label) si l'article passe le filtre,
-    (False, '') sinon.
-    """
     entry_categories = get_entry_categories(entry)
-    for label, keywords in ALLOWED_CATEGORIES:
-        for kw in keywords:
-            if any(kw in cat for cat in entry_categories):
-                return True, label
+
+    for blocked in BLOCKED_TAGS:
+        if blocked in entry_categories:
+            return False, ""
+
+    for cat in entry_categories:
+        if cat in ALLOWED_CATEGORIES:
+            return True, cat.title()
+
     return False, ""
 
 
@@ -90,6 +103,7 @@ def strip_html(text):
     text = re.sub(r"L.article\s+.+?\s+est apparu en premier sur \w+\.", "", text, flags=re.DOTALL)
     text = re.sub(r"\s+", " ", text)
     return text.strip()
+
 
 def load_posted():
     if Path(POSTED_FILE).exists():
@@ -140,6 +154,7 @@ def publish_note(content, nsec):
 
     asyncio.run(_publish())
 
+
 # ── Main ───────────────────────────────────────────────────────────────────
 
 def main():
@@ -159,7 +174,7 @@ def main():
     if feed.bozo:
         print(f"Avertissement RSS : {feed.bozo_exception}")
 
-    entries = list(reversed(feed.entries))  # plus ancien → plus récent
+    entries = list(reversed(feed.entries))
     published = skipped_cat = skipped_posted = 0
 
     for entry in entries:
@@ -179,7 +194,7 @@ def main():
 
         if not allowed:
             skipped_cat += 1
-            posted.add(link)  # mémorise pour ne pas re-tester
+            posted.add(link)
             continue
 
         note = build_note(entry)
