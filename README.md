@@ -4,10 +4,10 @@ Publie automatiquement les nouveaux articles du feed Cryptoast BTC sur Nostr.
 
 ## Déploiement (5 minutes)
 
-### 1. Créer un repo GitHub privé
+### 1. Forker ce dépôt
 
-- Nouveau repo → **Private**
-- Pousse tous les fichiers de ce projet
+- Clique sur **Fork** en haut de la page (ou crée un nouveau dépôt et pousse-y les fichiers)
+- Public ou privé, au choix : ta clé Nostr reste dans les secrets GitHub, jamais dans le code
 
 ### 2. Ajouter le secret NOSTR_NSEC
 
@@ -58,3 +58,7 @@ Dans `.github/workflows/post.yml`, changer la ligne cron :
 - Toutes les 15 min : `"*/15 * * * *"`
 - Toutes les heures : `"0 * * * *"`
 - Une fois par jour à 8h : `"0 8 * * *"`
+
+## Licence
+
+Code sous licence [MIT](LICENSE) : libre d'utilisation, de modification, de fork et de redistribution, y compris à des fins commerciales, à condition de conserver la mention de copyright.
